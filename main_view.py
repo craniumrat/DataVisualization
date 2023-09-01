@@ -1,6 +1,6 @@
 from PyQt6 import QtCore
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QToolBar, QPushButton, QStyle
-from PyQt6.QtGui import QScreen
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QToolBar, QStyle, QTableView
+from PyQt6.QtGui import QAction
 
 from model import Model
 from main_controller import MainController
@@ -19,24 +19,27 @@ class MainView(QMainWindow):
         toolbar.setIconSize(QtCore.QSize(16, 16))
         toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly)
 
-        openButton = QPushButton("Open")
+        openAction = QAction("Open", self)
         pixmapi = getattr(QStyle.StandardPixmap, 'SP_DirOpenIcon')
         icon = self.style().standardIcon(pixmapi)
-        openButton.setIcon(icon)
-        toolbar.addWidget(openButton)
+        openAction.setIcon(icon)
+        openAction.triggered.connect(self.controller.onOpenActionTriggered)
+        toolbar.addAction(openAction)
+        
 
         self.addToolBar(toolbar)
 
         layout = QVBoxLayout()
-        self.setLayout(layout)
+        centralWidget = QWidget()
+        self.setCentralWidget(centralWidget)
+        self.centralWidget().setLayout(layout)
 
         ##Add a File > Open menu to create a file select box. This will load the CSV file.
         ##Create the QStandardItemModel using the CSV data.
         
         ##Show the data using QTableView in the main application.
-
-        label = QLabel("Data Visualizaation")
-        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(label)
+        tableview = QTableView(self)
+        tableview.setModel(self.model)
+        layout.addWidget(tableview)
 
 

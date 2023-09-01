@@ -1,23 +1,29 @@
-from PyQt6.QtCore import QObject
-from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QWidget
-import csv
+from typing import Any
+from PyQt6.QtCore import QModelIndex, QObject, QAbstractTableModel, Qt
+import pandas as pd
 
-##TODO: We will try with QAbstractItemModel later. For now, let's try QStandardItemModel
-
-class Model(QStandardItemModel):
+class Model(QAbstractTableModel):
     def __init__(self, parent: QObject | None = ...) -> None:
         super().__init__(parent)
+        self.df = pd.DataFrame()
 
     def load(self, file):
-        with open(file) as csvfile:
-            reader = csv.reader(csvfile)
-            headers = next(reader)
-            self.setHorizontalHeaderLabels(headers)
-            for i, row in enumerate(reader):
-                items = [
-                    QStandardItem(field) for field in row 
-                ]
+        self.df = pd.read_csv(file)
 
-                self.insertRow(i, items)
-                
+        topLeft = self.index(0, 0)
+        bottomRight = self.index(self.df.shape[0] - 1, self.df.shape[1] - 1)
+        self.modelReset.emit()
+
+    def rowCount(self, parent: QModelIndex = ...) -> int:
+         return self.df.shape[0]
+    
+    def columnCount(self, parent: QModelIndex = ...) -> int:
+        return self.df.shape[1]
+
+    def data(self, index: QModelIndex, role: int = ...) -> Any:
+        if index.isValid() and role == Qt.ItemDataRole.DisplayRole:
+            return str(self.df.iat[index.row(), index.column()])
+
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> Any:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
+            return self.df.columns.values
